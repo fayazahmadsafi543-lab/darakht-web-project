@@ -1,0 +1,190 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+}
+
+enum CategoryType {
+  GENERAL
+  SOFTWARE
+}
+
+enum AdStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum InquiryStatus {
+  NEW
+  READ
+  REPLIED
+  CLOSED
+}
+
+model Admin {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  password  String
+  name      String
+  avatar    String?
+  role      AdminRole @default(ADMIN)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  @@map("admins")
+}
+
+model Category {
+  id             String         @id @default(cuid())
+  name           String         @unique
+  slug           String         @unique
+  description    String?
+  icon           String?
+  color          String?
+  type           CategoryType   @default(GENERAL)
+  isActive       Boolean        @default(true)
+  sortOrder      Int            @default(0)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  advertisements Advertisement[]
+  @@map("categories")
+}
+
+model Advertisement {
+  id           String    @id @default(cuid())
+  title        String
+  slug         String    @unique
+  description  String
+  shortDesc    String?
+  categoryId   String
+  category     Category  @relation(fields: [categoryId], references: [id])
+  status       AdStatus  @default(DRAFT)
+  isFeatured   Boolean   @default(false)
+  images       String[]
+  videoUrl     String?
+  thumbnail    String?
+  priceFrom    Float?
+  priceTo      Float?
+  priceLabel   String?
+  currency     String    @default("USD")
+  phone        String?
+  whatsapp     String?
+  email        String?
+  website      String?
+  address      String?
+  features     String[]
+  tags         String[]
+  technologies String[]
+  demoUrl      String?
+  views        Int       @default(0)
+  clicks       Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  inquiries    Inquiry[]
+  @@map("advertisements")
+}
+
+model Media {
+  id           String   @id @default(cuid())
+  publicId     String   @unique
+  url          String
+  secureUrl    String
+  format       String
+  resourceType String
+  width        Int?
+  height       Int?
+  bytes        Int?
+  folder       String?
+  alt          String?
+  createdAt    DateTime @default(now())
+  @@map("media")
+}
+
+model Inquiry {
+  id              String        @id @default(cuid())
+  name            String
+  email           String
+  phone           String?
+  message         String
+  advertisementId String?
+  advertisement   Advertisement? @relation(fields: [advertisementId], references: [id])
+  status          InquiryStatus  @default(NEW)
+  adminReply      String?
+  repliedAt       DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  @@map("inquiries")
+}
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  name      String
+  role      String?
+  company   String?
+  content   String
+  rating    Int      @default(5)
+  avatar    String?
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  @@map("testimonials")
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+  name        String
+  icon        String?
+  description String
+  type        String
+  picture     String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@map("achievements")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  icon        String?
+  description String
+  type        String
+  picture     String?
+  features    String[] @default([])
+  priceFrom   Float?
+  priceLabel  String?
+  demoUrl     String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@map("products")
+}
+
+model SiteSettings {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+  @@map("site_settings")
+}
+
+model PageView {
+  id        String   @id @default(cuid())
+  path      String
+  referrer  String?
+  userAgent String?
+  ip        String?
+  createdAt DateTime @default(now())
+  @@map("page_views")
+}
